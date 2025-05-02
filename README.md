@@ -156,13 +156,10 @@ Thus, the estimated transaction size would be:
 
 The **approximate fee per kilobyte** is obtained from the Tatum API, which provides up-to-date fee rates for Bitcoin transactions. You can reference the Tatum API [here](https://docs.tatum.io/docs/btc-fee-estimate).
 
-The script provides three fee options:
+The API provides three fee options:
 
 - **fast**: A higher fee for faster transaction confirmation.
 - **medium**: A moderate fee for balanced confirmation time.
 - **low**: A lower fee for slower confirmation times.
 
-The **default** option in the current script is **fast**, however, you can change it to any other option by modifying the `FEE_SPEED` field in the `.env` file.
-
 Once the fee rate and transaction size are determined, the estimated fee can be calculated and applied when broadcasting the transaction.
-
