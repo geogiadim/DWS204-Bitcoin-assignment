@@ -83,8 +83,7 @@ python3 spend_p2sh.py --privkey <privkey> --locktime <locktime> --p2sh-addr <p2s
    ```
 
 **Note**:  
-The `spend_p2sh.py` script uses the `create_absolute_timelock_redeem_script` function from `generate_p2sh.py` to reconstruct the redeem script.  
-Therefore, **both scripts must be located in the same folder** to ensure proper execution.
+The `spend_p2sh.py` script uses the `create_absolute_timelock_redeem_script` function from `generate_p2sh.py` to reconstruct the redeem script. Therefore, **both scripts must be located in the same folder** to ensure proper execution.
 
 # Testing
 1. **Generate a P2PKH address and its private key:**
