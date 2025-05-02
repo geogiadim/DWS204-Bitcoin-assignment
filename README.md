@@ -11,16 +11,16 @@ Both scripts were built using the [`bitcoin-utils`](https://github.com/karask/py
 # Setup
 1. Install Bitcoin Core and configure for regtest:
    - Create ~/.bitcoin/bitcoin.conf with:
-     ```
-     regtest=1
-     rpcuser=test
-     rpcpassword=test
-     rpcport=18443
-     ```
+      ```
+      regtest=1
+      rpcuser=test
+      rpcpassword=test
+      rpcport=18443
+      ```
    - Start regtest node:
-     ```sh
-     bitcoind -regtest -daemon
-     ```
+      ```sh
+      bitcoind -regtest -daemon
+      ```
 
 2. Install dependencies:
    ```sh
@@ -43,6 +43,11 @@ For efficiency and configurability, the scripts rely on environment variables de
 - **`RPCUSER`, `RPCPASSWORD`, `RPCPORT`**: Configuration values for connecting to your local Bitcoin Regtest node. These should match the corresponding fields in your `bitcoin.conf` file.
 
 **Note**: All environment variables are utilized only in `spend_p2sh.py` script. 
+
+To set the `.env` file run the following command.
+```
+cp example.env .env
+```
 
 # Running generate_p2sh.py
 Generates a P2SH address with an absolute timelock.
@@ -77,6 +82,9 @@ python3 spend_p2sh.py --privkey <privkey> --locktime <locktime> --p2sh-addr <p2s
    bitcoin-cli -regtest getnewaddress "" legacy
    ```
 
+**Note**:  
+The `spend_p2sh.py` script uses the `create_absolute_timelock_redeem_script` function from `generate_p2sh.py` to reconstruct the redeem script.  
+Therefore, **both scripts must be located in the same folder** to ensure proper execution.
 
 # Testing
 1. **Generate a P2PKH address and its private key:**
@@ -99,7 +107,8 @@ python3 spend_p2sh.py --privkey <privkey> --locktime <locktime> --p2sh-addr <p2s
       ```
    - If you're using a UNIX timestamp, wait until the specified time has passed.
 5. **Run `spend_p2sh.py` to spend the funds to a P2PKH address.**
-   Note: Get the transaction id (txid) from the output of the script
+   
+   **Note**: Get the transaction id (txid) from the output of the script.
 6. **Check the transaction in the mempool:**
    ```sh
    bitcoin-cli getrawtransaction <txid> true
