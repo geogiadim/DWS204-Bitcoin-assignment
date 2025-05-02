@@ -8,6 +8,16 @@ This project consists of two Python scripts that implement a Bitcoin time-locked
 
 Both scripts were built using the [`bitcoin-utils`](https://github.com/karask/python-bitcoin-utils) library.
 
+# Table of Contents
+
+- [Overview](#bitcoin-timelock-assignment)
+- [Setup](#setup)
+- [Environment Variables](#environment-variables)
+- [Running generate_p2sh.py](#running-generate_p2shpy)
+- [Running spend_p2sh.py](#running-spend_p2shpy)
+- [Testing](#testing)
+- [Fee Calculation for Bitcoin Transactions](#fee-calculation-for-bitcoin-transactions)
+
 # Setup
 1. Install Bitcoin Core and configure for regtest:
    - Create ~/.bitcoin/bitcoin.conf with:
