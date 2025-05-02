@@ -5,8 +5,7 @@
 - Bitcoin Core (configured for regtest)
 - Python library: bitcoinutils
 
-Setup
------
+# Setup
 1. Install Bitcoin Core and configure for regtest:
    - Create ~/.bitcoin/bitcoin.conf with:
      ```
@@ -31,8 +30,7 @@ Setup
    bitcoin-cli -regtest dumpprivkey <address>
    ```
 
-Running generate_p2sh.py
------------------------
+# Running generate_p2sh.py
 Generates a P2SH address with an absolute timelock.
 
 Usage:
@@ -44,8 +42,7 @@ python3 generate_p2sh.py --pubkey <pubkey> --locktime <locktime>
 - `--locktime`: Block height or UNIX timestamp.
 
 
-Running spend_p2sh.py
----------------------
+# Running spend_p2sh.py
 Spends funds from the P2SH address to a P2PKH address.
 
 Usage:
@@ -59,8 +56,7 @@ python spend_p2sh.py --pubkey <pubkey_hex> --privkey <privkey_wif> --locktime <l
 - `--p2pkh-addr`: P2PKH address to send funds to.
 
 
-Testing
--------
+# Testing
 1. Run generate_p2sh.py to get a P2SH address.
 2. Send funds to the P2SH address:
    ```
@@ -72,8 +68,41 @@ Testing
    ```
 4. Run spend_p2sh.py to spend the funds.
 
-Notes
------
-- Fee calculation assumes 10 sat/byte for simplicity.
-- Ensure the regtest node is running before executing scripts.
-- Scripts handle multiple UTXOs.
+
+# Fee calculation for Bitcoin transactions
+To estimate the fee for a Bitcoin transaction, the following formula is used:
+
+```
+Estimated total Fee = approximate fee per kilobyte × transaction size in kilobytes
+```
+
+## Transaction size calculation
+The transaction size in bytes is estimated using the following formula:
+
+- **`len(inputs) * 148`**: Each input (spending a UTXO) typically occupies 148 bytes.
+- **`+ len(outputs) * 34`**: Each output (sending Bitcoin to a recipient) typically occupies 34 bytes.
+- **`+ 10`**: This accounts for fixed transaction overhead, including fields such as the version number, locktime, and other constant data.
+
+For example, for a transaction with 1 input and 1 output:
+- **Input size**: `1 * 148 = 148 bytes`
+- **Output size**: `1 * 34 = 34 bytes`
+- **Overhead**: `+ 10 bytes`
+
+Thus, the estimated transaction size would be:
+
+`148 bytes (input) + 34 bytes (output) + 10 bytes (overhead) = 192 bytes = 0.192 kilobytes`
+
+## Fee per kilobyte estimation
+
+The **approximate fee per kilobyte** is obtained from the Tatum API, which provides up-to-date fee rates for Bitcoin transactions. You can reference the Tatum API [here](https://docs.tatum.io/docs/btc-fee-estimate).
+
+The script provides three fee options:
+
+- **fast**: A higher fee for faster transaction confirmation.
+- **medium**: A moderate fee for balanced confirmation time.
+- **low**: A lower fee for slower confirmation times.
+
+The **default** option in the current script is **fast**, however, you can change it to any other option by modifying the `FEE_SPEED` field in the `.env` file.
+
+Once the fee rate and transaction size are determined, the estimated fee can be calculated and applied when broadcasting the transaction.
+

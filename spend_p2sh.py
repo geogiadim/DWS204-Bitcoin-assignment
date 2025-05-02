@@ -78,11 +78,11 @@ def create_raw_transaction(utxos, p2pkh_address, locktime):
         total_input += utxo['amount']
     
     # Formula: (len(inputs) * 148) + (len(outputs) * 34) + 10
-    # Assume 1 outputs: 1 to P2PKH recipient, no change output since we are spending all UTXOs
+    # Assume only 1 output: 1 to P2PKH recipient, no change output since we are spending all UTXOs
     input_count = len(inputs)
     output_count = 1
     tx_size_kilo_bytes = ((input_count * 148) + (output_count * 34) + 10) / 1000
-    total_fee = int(fetch_fee_rate_per_kilobyte() * tx_size_kilo_bytes)
+    total_fee = int(fetch_fee_rate_per_kilobyte(speed=os.getenv('FEE_SPEED')) * tx_size_kilo_bytes)
 
     print(f"[INFO] Estimated transaction size: {tx_size_kilo_bytes} kilobytes")
     print(f"[INFO] Estimated fee: {total_fee} satoshis")
