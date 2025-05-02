@@ -26,6 +26,7 @@ def create_absolute_timelock_redeem_script(pub_key, locktime):
         'OP_DUP',
         'OP_HASH160',
         pub_key.get_address().to_hash160(),
+        'OP_EQUALVERIFY',
         'OP_CHECKSIG'
     ])
     return redeem_script

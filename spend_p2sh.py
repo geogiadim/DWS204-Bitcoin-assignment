@@ -65,21 +65,16 @@ def get_utxos(p2sh_addr, rpc):
     except Exception as e:
         print(f"Error fetching UTXOs: {e}")
         return []
-    
-
-def calculate_transaction_fee(tx_size, fee_rate=1):
-    """Calculate the transaction fee based on the size and fee rate."""
-    return tx_size * fee_rate
 
 
-def create_raw_transaction(utxos, p2pkh_address):
+def create_raw_transaction(utxos, p2pkh_address, locktime):
     """Create raw transaction."""
     inputs = []
     outputs = []
     total_input = 0
 
     for utxo in utxos:
-        inputs.append(TxInput(utxo['txid'], utxo['vout']))
+        inputs.append(TxInput(utxo['txid'], utxo['vout'], sequence=0xFFFFFFFE.to_bytes(4, byteorder='little')))
         total_input += utxo['amount']
     
     # Formula: (len(inputs) * 148) + (len(outputs) * 34) + 10
@@ -98,7 +93,7 @@ def create_raw_transaction(utxos, p2pkh_address):
     outputs.append(TxOutput(amount_to_send, p2pkh_address.to_script_pub_key()))
 
     # Create transaction
-    tx = Transaction(inputs, outputs)
+    tx = Transaction(inputs, outputs, locktime=locktime.to_bytes(4, byteorder='little'))
 
     return tx
 
@@ -107,15 +102,8 @@ def sign_transaction(tx, private_key, redeem_script):
     """Sign the transaction."""
     for i in range(len(tx.inputs)):
         sig = private_key.sign_input(tx, i, redeem_script)
-        tx.inputs[i].script_sig = Script([sig, redeem_script.to_hex()])
+        tx.inputs[i].script_sig = Script([sig, private_key.get_public_key().to_hex(), redeem_script.to_hex()])
     return tx
-
-
-# def send_transaction(tx):
-#     """Send the signed transaction to the blockchain."""
-#     raw_tx = tx.serialize()
-#     txid = Network().broadcast_transaction(raw_tx)
-#     return txid
     
 
 def main():
@@ -142,9 +130,12 @@ def main():
 
     # Check if there are any UTXOs in the P2SH address and get them
     utxos = get_utxos(args.p2sh_addr, rpc)
+    if not utxos:
+        print(f"[INFO] No UTXOs found for address {args.p2sh_addr}")
+        return
 
     # Create the raw transaction
-    tx = create_raw_transaction(utxos, p2pkh_addr)
+    tx = create_raw_transaction(utxos, p2pkh_addr, int(args.locktime))
     print(f"\n### Raw Unsigned Transaction: {tx.serialize()}")
 
     # Sign the transaction
@@ -155,7 +146,7 @@ def main():
     # Verify the transaction
     try:
         rpc.testmempoolaccept([signed_tx.serialize()])
-        print("[INFO] Transaction is valid and ready to be sent.")
+        print("\n[INFO] Transaction is valid and ready to be sent.")
     except Exception as e:
         print(f"[ERROR] Transaction verification failed: {e}")
         return
