@@ -46,8 +46,10 @@ def main():
 
     # Parse arguments
     parser = argparse.ArgumentParser(description="Generate a P2SH timelock address")
-    parser.add_argument('--pubkey', required=True, help="Public key for P2PKH")
-    parser.add_argument('--privkey', help='Private key (optional, get pubkey from it)')
+    # Create a mutually exclusive group to ensure either pubkey or privkey is provided
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('--pubkey', help="Public key for P2PKH")
+    group.add_argument('--privkey', help='Private key (optional, get pubkey from it)')
     parser.add_argument('--locktime', required=True, type=int, help="Locktime (block height or UNIX timestamp)")
     args = parser.parse_args()
 
@@ -68,10 +70,10 @@ def main():
     try:
         # Execute the process
         p2sh_addr, redeem_script = generate_p2sh(pub_key, args.locktime)
+        print(f"[INFO] Redeem Script: {redeem_script}")
+        print(f"[INFO] Redeem Script in Hex: {redeem_script.to_hex()}")
 
-        print(f"P2SH Address: {p2sh_addr.to_string()}")
-        print(f"Redeem Script: {redeem_script}")
-        print(f"Redeem Script in Hex: {redeem_script.to_hex()}")
+        print(f"\n### The generated P2SH Address: {p2sh_addr.to_string()}")
 
     except Exception as e:
         print(f"Error generating P2SH address: {e}")

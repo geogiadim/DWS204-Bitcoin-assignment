@@ -74,7 +74,8 @@ def create_raw_transaction(utxos, p2pkh_address, locktime):
     total_input = 0
 
     for utxo in utxos:
-        inputs.append(TxInput(utxo['txid'], utxo['vout'], sequence=0xFFFFFFFE.to_bytes(4, byteorder='little')))
+        # Set sequence to enable locktime; 0xFFFFFFFF would disable it
+        inputs.append(TxInput(utxo['txid'], utxo['vout'], sequence=0xFFFFFFFE.to_bytes(4, byteorder='little'))) 
         total_input += utxo['amount']
     
     # Formula: (len(inputs) * 148) + (len(outputs) * 34) + 10
@@ -93,7 +94,9 @@ def create_raw_transaction(utxos, p2pkh_address, locktime):
     outputs.append(TxOutput(amount_to_send, p2pkh_address.to_script_pub_key()))
 
     # Create transaction
-    tx = Transaction(inputs, outputs, locktime=locktime.to_bytes(4, byteorder='little'))
+    # locktime specifies the earliest time or block height when the transaction can be added to the blockchain
+    tx = Transaction(inputs, outputs, locktime=locktime.to_bytes(4, byteorder='little')) 
+    
 
     return tx
 

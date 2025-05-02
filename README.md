@@ -1,9 +1,12 @@
-# Bitcoin Timelock Assignment Instructions
+# Bitcoin Timelock Assignment
+This project consists of two Python scripts that implement a Bitcoin time-locked P2SH address mechanism using a local Regtest network:
 
-# Requirements
-- Python 3.10+
-- Bitcoin Core (configured for regtest)
-- Python library: bitcoinutils
+1. **Lock Script**: Generates a Pay-to-Script-Hash (P2SH) Bitcoin address with an **absolute time-locking redeem script**. Funds sent to this address are locked until a specific block height or UNIX timestamp.
+
+2. **Spend Script**: Spends **all funds received by the time-locked P2SH address** and sends them to a specified **P2PKH address**, once the time-lock condition is met.
+
+
+Both scripts were built using the [`bitcoin-utils`](https://github.com/karask/python-bitcoin-utils) library.
 
 # Setup
 1. Install Bitcoin Core and configure for regtest:
@@ -15,58 +18,97 @@
      rpcport=18443
      ```
    - Start regtest node:
-     ```
+     ```sh
      bitcoind -regtest -daemon
      ```
 
 2. Install dependencies:
-   ```
+   ```sh
    pip install -r requirements.txt
    ```
 
-3. Generate a keypair for testing:
-   ```
-   bitcoin-cli -regtest getnewaddress
-   bitcoin-cli -regtest dumpprivkey <address>
-   ```
+## Environment Variables
+
+For efficiency and configurability, the scripts rely on environment variables defined in a `.env` file. Below is an explanation of each variable:
+
+- **`TATUM_API_KEY`**: Sets the API key used to interact with the [Tatum API](https://docs.tatum.io/docs/btc-fee-estimate) for Bitcoin fee estimation. You can keep the provided key or use your own.
+
+- **`FEE_SPEED`**: Declares the desired transaction fee category from the Tatum API. Available options are:
+  - `fast` (default)
+  - `medium`
+  - `slow`
+
+   The selected fee speed determines the estimated fee per kilobyte applied during transaction creation and broadcast.
+
+- **`RPCUSER`, `RPCPASSWORD`, `RPCPORT`**: Configuration values for connecting to your local Bitcoin Regtest node. These should match the corresponding fields in your `bitcoin.conf` file.
+
+**Note**: All environment variables are utilized only in `spend_p2sh.py` script. 
 
 # Running generate_p2sh.py
 Generates a P2SH address with an absolute timelock.
 
 Usage:
-```
+```sh
 python3 generate_p2sh.py --pubkey <pubkey> --locktime <locktime>
+```
+or
+```sh
+python3 generate_p2sh.py --privkey <privkey> --locktime <locktime>
 ```
 - `--pubkey`: Public key.
 - `--privkey`: Private key (optional).
 - `--locktime`: Block height or UNIX timestamp.
 
+**Note**: You can specify either the `--pubkey` or the `--privkey` option, but not both. They are mutually exclusive, and you must define only one of them.
 
 # Running spend_p2sh.py
-Spends funds from the P2SH address to a P2PKH address.
+Spends all funds from the P2SH address to a P2PKH address.
 
 Usage:
+```sh
+python3 spend_p2sh.py --privkey <privkey> --locktime <locktime> --p2sh-addr <p2sh_addr> --p2pkh-addr <p2pkh_addr>
 ```
-python spend_p2sh.py --pubkey <pubkey_hex> --privkey <privkey_wif> --locktime <locktime> [--block-height] --p2sh-addr <p2sh_addr> --dest-addr <p2pkh_addr>
-```
-- `--pubkey`: Public key.
-- `--privkey`: Private key in WIF format.
-- `--locktime`: Same locktime used in generate_p2sh.py.
-- `--p2sh-addr`: P2SH address from generate_p2sh.py.
-- `--p2pkh-addr`: P2PKH address to send funds to.
+- `--privkey`: Private key associated with the P2SH address.
+- `--locktime`: The same locktime used in generate_p2sh.py.
+- `--p2sh-addr`: P2SH address generated from generate_p2sh.py.
+- `--p2pkh-addr`: The destination P2PKH address to receive the funds. In **regtest**, this should be a **legacy address** starting with `m` or `n`. You can generate one using:
+
+   ```sh
+   bitcoin-cli -regtest getnewaddress "" legacy
+   ```
 
 
 # Testing
-1. Run generate_p2sh.py to get a P2SH address.
-2. Send funds to the P2SH address:
+1. **Generate a P2PKH address and its private key:**
+   ```sh
+   bitcoin-cli getnewaddress
+   bitcoin-cli dumpprivkey <address>
    ```
-   bitcoin-cli -regtest sendtoaddress <p2sh_addr> 1.0
+2. **Run `generate_p2sh.py` to create a P2SH address with an absolute timelock.**
+3. **Send funds to the generated P2SH address:**
    ```
-3. If using block height, mine blocks:
+   bitcoin-cli sendtoaddress <p2sh_addr> 10.0
    ```
-   bitcoin-cli -regtest generate 101
+
+   **Note**: Repeat this step with different amounts if you want to create multiple UTXOs.
+4. **Make the funds spendable:**
+
+   - If you're using block height as the locktime, mine enough blocks:
+      ```
+      bitcoin-cli generatetoaddress <num_blocks> <p2pkh_addr>
+      ```
+   - If you're using a UNIX timestamp, wait until the specified time has passed.
+5. **Run `spend_p2sh.py` to spend the funds to a P2PKH address.**
+   Note: Get the transaction id (txid) from the output of the script
+6. **Check the transaction in the mempool:**
+   ```sh
+   bitcoin-cli getrawtransaction <txid> true
    ```
-4. Run spend_p2sh.py to spend the funds.
+7. **Mine a block to confirm the transaction:**
+   ```sh
+   bitcoin-cli generatetoaddress 1 <miner_address>
+   ```
+
 
 
 # Fee calculation for Bitcoin transactions
