@@ -154,7 +154,7 @@ def main():
     # Send transaction
     try:
         txid = rpc.sendrawtransaction(signed_tx.serialize())
-        print(f"Transaction ID: {txid}")
+        print(f"[INFO] Transaction broadcasted successfully to the mempool with txid: {txid}")
     except Exception as e:
         print(f"Failed to broadcast transaction: {e}")
 
