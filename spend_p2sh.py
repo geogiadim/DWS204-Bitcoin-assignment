@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from generate_p2sh import create_absolute_timelock_redeem_script, check_locktime
 
 
-def fetch_fee_rate_per_kilobyte(speed='fast'):
+def fetch_fee_rate_per_kilobyte(speed=os.getenv('FEE_SPEED')):
     """
     Fetch current Bitcoin fee rate in satoshis per kilobyte from Tatum API.
     speed: 'slow', 'medium', or 'fast'
